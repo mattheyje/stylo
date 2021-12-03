@@ -80,21 +80,21 @@ const createNewArticleVersion  = store => {
   return next => {
     return async (action) => {
       if (action.type === 'CREATE_NEW_ARTICLE_VERSION') {
-        const { articleVersions, activeUser, applicationConfig } = store.getState()
+        const { articleVersions, activeUser, sessionToken, applicationConfig } = store.getState()
         const userId = activeUser._id
         const { articleId, major, message } = action
-        const versionService = new VersionService(userId, articleId, applicationConfig)
+        const versionService = new VersionService(userId, articleId, sessionToken, applicationConfig)
         const response = await versionService.createNewArticleVersion(major, message)
         store.dispatch({ type: 'SET_ARTICLE_VERSIONS', versions: [response.saveVersion, ...articleVersions] })
         return next(action)
       }
       if (action.type === 'UPDATE_WORKING_ARTICLE_TEXT') {
-        const { activeUser, applicationConfig } = store.getState()
+        const { activeUser, sessionToken, applicationConfig } = store.getState()
         const userId = activeUser._id
         const { articleId, text } = action
         store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saving' })
         try {
-          const { updateWorkingVersion } = await new ArticleService(userId, articleId, applicationConfig).saveText(text)
+          const { updateWorkingVersion } = await new ArticleService(userId, articleId, sessionToken, applicationConfig).saveText(text)
           store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saved' })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_TEXT', text })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_UPDATED_AT', updatedAt: updateWorkingVersion.updatedAt })
@@ -105,11 +105,11 @@ const createNewArticleVersion  = store => {
         return next(action)
       }
       if (action.type === 'UPDATE_WORKING_ARTICLE_METADATA') {
-        const { activeUser, applicationConfig } = store.getState()
+        const { activeUser, sessionToken, applicationConfig } = store.getState()
         const userId = activeUser._id
         const { articleId, metadata } = action
         try {
-          const { updateWorkingVersion } = await new MetadataService(userId, articleId, applicationConfig).saveMetadata(metadata)
+          const { updateWorkingVersion } = await new MetadataService(userId, articleId, sessionToken, applicationConfig).saveMetadata(metadata)
           store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saved' })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_METADATA', metadata })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_UPDATED_AT', updatedAt: updateWorkingVersion.updatedAt })
