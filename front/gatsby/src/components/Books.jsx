@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import styles from './books.module.scss'
 
 import Book from './Book'
 
-const mapStateToProps = ({ activeUser, sessionToken, applicationConfig }) => {
-  return { activeUser, sessionToken, applicationConfig }
-}
-
-const ConnectedBooks = (props) => {
+function Books () {
   const [isLoading, setIsLoading] = useState(true)
-  const [displayName, setDisplayName] = useState(props.activeUser.displayName)
   const [tags, setTags] = useState([])
   const [needReload, setNeedReload] = useState(true)
+  const displayName = useSelector(state => state.activeUser.displayName)
+  const userId = useSelector(state => state.activeUser._id)
+  const runQuery = useGraphQL()
 
   useEffect(() => {
     if (needReload) {
@@ -22,17 +20,11 @@ const ConnectedBooks = (props) => {
       ;(async () => {
         try {
           const query = `query($user:ID!){user(user:$user){ displayName tags{ _id name updatedAt articles{ _id title updatedAt versions(limit:1){ _id version revision message } } } } }`
-          const user = { user: props.activeUser._id }
+          const user = { user: userId }
           setIsLoading(true)
-          const data = await askGraphQL(
-            { query, variables: user },
-            'fetching articles',
-            props.sessionToken,
-            props.applicationConfig
-          )
+          const data = await runQuery({ query, variables: user })
           //Need to sort by updatedAt desc
           setTags(data.user.tags.reverse())
-          setDisplayName(data.user.displayName)
           setIsLoading(false)
           setNeedReload(false)
         } catch (err) {
@@ -62,5 +54,4 @@ const ConnectedBooks = (props) => {
   )
 }
 
-const Books = connect(mapStateToProps)(ConnectedBooks)
 export default Books

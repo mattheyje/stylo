@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import etv from '../helpers/eventTargetValue'
 
 import Article from './Article'
@@ -14,20 +14,19 @@ import Field from './Field'
 import { Search } from 'react-feather'
 import Tag from './Tag'
 
-const mapStateToProps = ({ activeUser, sessionToken, applicationConfig }) => {
-  return { activeUser, sessionToken, applicationConfig }
-}
+function Articles () {
+  const displayName = useSelector(state => state.activeUser.displayName)
+  const userId = useSelector(state => state.activeUser._id)
 
-const ConnectedArticles = (props) => {
   const [isLoading, setIsLoading] = useState(false)
   const [filter, setFilter] = useState('')
   const [articles, setArticles] = useState([])
   const [tags, setTags] = useState([])
   const [filterTags, setFilterTags] = useState([])
-  const [displayName, setDisplayName] = useState(props.activeUser.displayName)
   const [creatingArticle, setCreatingArticle] = useState(false)
   const [needReload, setNeedReload] = useState(true)
   const [tagManagement, setTagManagement] = useState(false)
+  const runQuery = useGraphQL()
 
   const handleReload = useCallback(() => {
     setNeedReload(true)
@@ -92,7 +91,7 @@ const ConnectedArticles = (props) => {
 
   const query =
     'query($user:ID!){user(user:$user){ displayName tags{ _id description color name } articles{ _id title updatedAt owners{ displayName } versions{ _id version revision message } tags{ name color _id }}}}'
-  const user = { user: props.activeUser._id }
+  const user = { user: userId }
 
   useEffect(() => {
     if (needReload) {
@@ -100,12 +99,8 @@ const ConnectedArticles = (props) => {
       ;(async () => {
         try {
           setIsLoading(true)
-          const data = await askGraphQL(
-            { query, variables: user },
-            'fetching articles',
-            props.sessionToken,
-            props.applicationConfig
-          )
+          const data = await runQuery({ query, variables: user })
+
           //Need to sort by updatedAt desc
           setArticles(data.user.articles.reverse())
           const tags = data.user.tags.map((t) => ({
@@ -116,7 +111,6 @@ const ConnectedArticles = (props) => {
           setTags(tags)
           // deep copy of tags
           setFilterTags(JSON.parse(JSON.stringify(tags)))
-          setDisplayName(data.user.displayName)
           setIsLoading(false)
           setNeedReload(false)
         } catch (err) {
@@ -196,5 +190,4 @@ const ConnectedArticles = (props) => {
   )
 }
 
-const Articles = connect(mapStateToProps)(ConnectedArticles)
 export default Articles

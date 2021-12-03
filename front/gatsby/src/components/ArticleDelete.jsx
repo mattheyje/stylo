@@ -1,27 +1,21 @@
 import React from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import Button from './Button'
 
 import styles from './Articles.module.scss'
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 
-const mapStateToProps = ({ sessionToken, activeUser, applicationConfig }) => {
-  return { sessionToken, activeUser, applicationConfig }
-}
+function ArticleDelete ({ setNeedReload, _id }){
+  const userId = useSelector(state => state.activeUser._id)
+  const runQuery = useGraphQL()
 
-const ConnectedArticleDelete = (props) => {
   const deleteArticle = async () => {
     try {
       const query = `mutation($user:ID!,$article:ID!){deleteArticle(article:$article,user:$user){ _id }}`
-      const variables = { user: props.activeUser._id, article: props._id }
-      await askGraphQL(
-        { query, variables },
-        'Deleting Article',
-        props.sessionToken,
-        props.applicationConfig
-      )
-      props.setNeedReload()
+      const variables = { user: userId, article: _id }
+      await runQuery({ query, variables })
+      setNeedReload()
     } catch (err) {
       alert(err)
     }
@@ -34,5 +28,4 @@ const ConnectedArticleDelete = (props) => {
   )
 }
 
-const ArticleDelete = connect(mapStateToProps)(ConnectedArticleDelete)
 export default ArticleDelete

@@ -1,38 +1,31 @@
 import React, { useState } from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { Check, Edit3 } from 'react-feather'
 
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import etv from '../helpers/eventTargetValue'
 import Button from './Button'
 import buttonStyles from './button.module.scss'
 import styles from './chapter.module.scss'
 import Field from './Field'
 
-const mapStateToProps = ({ activeUser, sessionToken, applicationConfig }) => {
-  return { activeUser, sessionToken, applicationConfig }
-}
-
-const ConnectedChapter = (props) => {
+export default function Chapter (props) {
   const [renaming, setRenaming] = useState(false)
   const [title, setTitle] = useState(props.title)
   const [tempTitle, setTempTitle] = useState(props.title)
+  const userId = useSelector(state => state.activeUser._id)
+  const runQuery = useGraphQL()
 
   const rename = async (e) => {
     e.preventDefault()
     const query = `mutation($article:ID!,$title:String!,$user:ID!){renameArticle(article:$article,title:$title,user:$user){title}}`
     const variables = {
-      user: props.activeUser._id,
+      user: userId,
       article: props._id,
       title: tempTitle,
     }
-    await askGraphQL(
-      { query, variables },
-      'Renaming Article',
-      props.sessionToken,
-      props.applicationConfig
-    )
+    await runQuery({ query, variables })
     setTitle(tempTitle)
     setRenaming(false)
     props.setNeedReload()
@@ -65,6 +58,3 @@ const ConnectedChapter = (props) => {
     </>
   )
 }
-
-const Chapter = connect(mapStateToProps)(ConnectedChapter)
-export default Chapter

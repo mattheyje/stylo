@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { Send, Share } from 'react-feather'
+import { useGraphQL } from '../helpers/graphQL.js'
 
 import styles from './acquintances.module.scss'
 import formStyles from './field.module.scss'
@@ -10,16 +11,13 @@ import Field from './Field'
 
 import AcquintanceService from '../services/AcquintanceService'
 
-const mapStateToProps = ({ activeUser, applicationConfig }) => {
-  return { activeUser, applicationConfig }
-}
-
-function ConnectedAcquintances ({ _id: articleId, activeUser, setNeedReload, cancel, applicationConfig }) {
+export default function Acquintances ({ _id: articleId, setNeedReload, cancel }) {
   const [acquintances, setAcquintances] = useState([])
   const [contact, setContact] = useState('')
   const [loading, setLoading] = useState(true)
-  const userId = activeUser._id
-  const acquintanceService = new AcquintanceService(userId, applicationConfig)
+  const userId = useSelector(state => state.activeUser._id)
+  const runQuery = useGraphQL()
+  const acquintanceService = new AcquintanceService(userId, runQuery)
 
   const addContact = async () => {
     try {
@@ -96,6 +94,3 @@ function ConnectedAcquintances ({ _id: articleId, activeUser, setNeedReload, can
     </section>
   )
 }
-
-const Acquintances = connect(mapStateToProps)(ConnectedAcquintances)
-export default Acquintances

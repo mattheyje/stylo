@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import styles from './Articles.module.scss'
 import buttonStyles from './button.module.scss'
@@ -14,19 +14,14 @@ import ArticleTags from './ArticleTags'
 import formatTimeAgo from '../helpers/formatTimeAgo'
 import { generateArticleExportId } from "../helpers/identifier"
 import etv from '../helpers/eventTargetValue'
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 
 import Field from './Field'
 import Button from './Button'
 import { Check, ChevronDown, ChevronRight, Copy, Edit3, Eye, Printer, Send, Trash } from 'react-feather'
 
 
-const mapStateToProps = ({ activeUser, sessionToken, applicationConfig }) => {
-  return { activeUser, sessionToken, applicationConfig }
-}
-
-const ConnectedArticle = (props) => {
-  const exportEndpoint = props.applicationConfig.exportEndpoint
+function Article (props) {
   const [expanded, setExpanded] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -35,21 +30,18 @@ const ConnectedArticle = (props) => {
   const [title, setTitle] = useState(props.title)
   const [tempTitle, setTempTitle] = useState(props.title)
   const [sharing, setSharing] = useState(false)
+  const userId = useSelector(state => state.activeUser._id)
+  const runQuery = useGraphQL()
 
   const fork = async () => {
     try {
       const query = `mutation($user:ID!,$article:ID!){sendArticle(article:$article,to:$user,user:$user){ _id }}`
       const variables = {
-        user: props.activeUser._id,
-        to: props.activeUser._id,
+        user: userId,
+        to: userId,
         article: props._id,
       }
-      await askGraphQL(
-        { query, variables },
-        'forking Article',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      await runQuery({ query, variables })
       props.setNeedReload()
     } catch (err) {
       alert(err)
@@ -60,16 +52,11 @@ const ConnectedArticle = (props) => {
     e.preventDefault()
     const query = `mutation($article:ID!,$title:String!,$user:ID!){renameArticle(article:$article,title:$title,user:$user){title}}`
     const variables = {
-      user: props.activeUser._id,
+      user: userId,
       article: props._id,
       title: tempTitle,
     }
-    await askGraphQL(
-      { query, variables },
-      'Renaming Article',
-      props.sessionToken,
-      props.applicationConfig
-    )
+    await runQuery({ query, variables })
     setTitle(tempTitle)
     setRenaming(false)
     if (props.updateTitleHandler) {
@@ -202,5 +189,4 @@ const ConnectedArticle = (props) => {
   )
 }
 
-const Article = connect(mapStateToProps)(ConnectedArticle)
 export default Article

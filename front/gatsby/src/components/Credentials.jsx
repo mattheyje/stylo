@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux'
 
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import styles from './credentials.module.scss'
 import CredentialsUserSelect from './CredentialsUserSelect'
 import Loading from "./Loading";
@@ -11,11 +11,9 @@ import Field from "./Field";
 const mapStateToProps = ({
   users,
   activeUser,
-  sessionToken,
   password,
-  applicationConfig,
 }) => {
-  return { users, activeUser, sessionToken, password, applicationConfig }
+  return { users, activeUser, password }
 }
 const mapDispatchToProps = (dispatch) => {
   return {
@@ -24,10 +22,12 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-const Credentials = (props) => {
+function Credentials (props) {
+  const runQuery = useGraphQL()
+
   useEffect(() => {
     const query = `query{ refreshToken { users { _id displayName email } }}`
-    askGraphQL({ query }, 'update Password', props.sessionToken, props.applicationConfig).then(data => {
+    runQuery({ query }).then(data => {
       props.updateUser(data.refreshToken.users)
       setIsLoading(false)
     })
@@ -50,12 +50,7 @@ const Credentials = (props) => {
         new: password,
         user: props.activeUser._id,
       }
-      await askGraphQL(
-        { query, variables },
-        'update Password',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      await runQuery({ query, variables })
       setPassword('')
       setPasswordO('')
       setPasswordC('')
@@ -70,12 +65,7 @@ const Credentials = (props) => {
       setIsUpdating(true)
       const query = `mutation($password:ID!, $user:ID!){ setPrimaryUser(password:$password,user:$user){ users { _id displayName email } } }`
       const variables = { password: props.password._id, user: user }
-      const data = await askGraphQL(
-        { query, variables },
-        'Set user as default',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      const data = await runQuery({ query, variables })
       setIsUpdating(false)
       props.updateUser(data.setPrimaryUser.users)
     } catch (err) {

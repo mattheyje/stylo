@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { connect } from 'react-redux'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import etv from '../helpers/eventTargetValue'
 import styles from './userInfos.module.scss'
 import formStyles from './field.module.scss'
@@ -12,26 +12,10 @@ import Field from "./Field";
 import formatTimeAgo from '../helpers/formatTimeAgo';
 import Loading from "./Loading";
 
-const mapStateToProps = ({
-  password,
-  activeUser,
-  sessionToken,
-  applicationConfig,
-}) => {
-  return { password, activeUser, sessionToken, applicationConfig }
-}
-const mapDispatchToProps = (dispatch) => {
-  return {
-    updateActiveUser: (displayName) =>
-      dispatch({ type: `UPDATE_ACTIVE_USER`, payload: displayName }),
-    removedMyself: (_id) =>
-      dispatch({ type: 'REMOVE_MYSELF_ALLOWED_LOGIN', payload: _id }),
-    clearZoteroToken: () => dispatch({ type: 'CLEAR_ZOTERO_TOKEN' }),
-  }
-}
-
-const ConnectedUser = (props) => {
+export default function UserInfos (props) {
   const history = useHistory()
+  const dispatch = useDispatch()
+  const runQuery = useGraphQL()
   const [displayName, setDisplayName] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -50,19 +34,18 @@ const ConnectedUser = (props) => {
   //const [tokens, setTokens] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [emailLogin, setEmailLogin] = useState('')
-  const { clearZoteroToken } = props
+  const userId = useSelector(state => state.activeUser._id)
+
+  const updateActiveUser = useCallback((payload) => dispatch({ type: `UPDATE_ACTIVE_USER`, payload }), [])
+  const removedMyself = useCallback((payload) => dispatch({ type: 'REMOVE_MYSELF_ALLOWED_LOGIN', payload }), [])
+  const clearZoteroToken = useCallback(() => dispatch({ type: 'CLEAR_ZOTERO_TOKEN' }), [])
 
   useEffect(() => {
     ;(async () => {
       try {
         const query = `query($user:ID!){user(user:$user){ displayName _id email admin createdAt updatedAt yaml firstName zoteroToken lastName institution passwords{ _id username email } tokens{ _id name active }}}`
-        const variables = { user: props.activeUser._id }
-        const data = await askGraphQL(
-          { query, variables },
-          'fetching user',
-          props.sessionToken,
-          props.applicationConfig
-        )
+        const variables = { user: userId }
+        const data = await runQuery({ query, variables })
         //setDisplayNameH1(data.user.displayName)
         setDisplayName(data.user.displayName)
         setFirstName(data.user.firstName || '')
@@ -81,14 +64,9 @@ const ConnectedUser = (props) => {
 
   const unlinkZoteroAccount = async () => {
     const query = `mutation($user:ID!,$zoteroToken:String){updateUser(user:$user, zoteroToken:$zoteroToken){ displayName _id email admin createdAt updatedAt yaml firstName lastName institution zoteroToken passwords{ _id username email } tokens{ _id name active } }}`
-    const variables = { user: props.activeUser._id, zoteroToken: null }
+    const variables = { user: userId, zoteroToken: null }
     setIsLoading(true)
-    const data = await askGraphQL(
-      { query, variables },
-      'clear Zotero Token',
-      props.sessionToken,
-      props.applicationConfig
-    )
+    const data = await runQuery({ query, variables })
     setUser(data.updateUser)
     clearZoteroToken()
     setIsLoading(false)
@@ -100,22 +78,17 @@ const ConnectedUser = (props) => {
       setIsLoading(true)
       const query = `mutation($user:ID!,$displayName:String!,$firstName:String,$lastName:String, $institution:String,$yaml:String){updateUser(user:$user,displayName:$displayName,firstName:$firstName, lastName: $lastName, institution:$institution, yaml:$yaml){ displayName _id email admin createdAt updatedAt yaml firstName lastName institution zoteroToken passwords{ _id username email } tokens{ _id name active }}}`
       const variables = {
-        user: props.activeUser._id,
+        user: userId,
         yaml,
         displayName,
         firstName,
         lastName,
         institution,
       }
-      const data = await askGraphQL(
-        { query, variables },
-        'updating user',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      const data = await runQuery({ query, variables })
       //setDisplayNameH1(data.updateUser.displayName)
       setDisplayName(data.updateUser.displayName)
-      props.updateActiveUser(displayName)
+      updateActiveUser(displayName)
       setFirstName(data.updateUser.firstName || '')
       setLastName(data.updateUser.lastName || '')
       setInstitution(data.updateUser.institution || '')
@@ -141,13 +114,8 @@ const ConnectedUser = (props) => {
           }
         }
       }`
-      const variables = { email: emailLogin, user: props.activeUser._id }
-      const data = await askGraphQL(
-        { query, variables },
-        'Adding password to user',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      const variables = { email: emailLogin, user: userId }
+      const data = await runQuery({ query, variables })
       setEmailLogin('')
       setPasswords(data.addCredential.passwords)
     } catch (err) {
@@ -166,18 +134,13 @@ const ConnectedUser = (props) => {
           }
         }
       }`
-      const variables = { email: email, user: props.activeUser._id }
-      const data = await askGraphQL(
-        { query, variables },
-        'Removing password to user',
-        props.sessionToken,
-        props.applicationConfig
-      )
+      const variables = { email: email, user: userId }
+      const data = await runQuery({ query, variables })
       setPasswords(data.removeCredential.passwords)
 
       // User removed itself from allowedCredentials
       if (props.password._id === _id) {
-        props.removedMyself(user._id)
+        removedMyself(user._id)
         history.push('/credentials')
       }
     } catch (err) {
@@ -303,7 +266,3 @@ const ConnectedUser = (props) => {
   </>
   )
 }
-
-const User = connect(mapStateToProps, mapDispatchToProps)(ConnectedUser)
-
-export default User

@@ -1,5 +1,3 @@
-import askGraphQL from "../helpers/graphQL";
-
 const addAcquintanceQuery = `mutation($user: ID!, $email: String!) {
   addAcquintance(email: $email, user: $user) { _id }
 }`
@@ -24,58 +22,44 @@ const getAcquintancesQuery = `query($user: ID!) {
 
 export default class AcquintanceService {
 
-  constructor (userId, applicationConfig) {
+  constructor (userId, runQuery) {
     this.userId = userId
-    this.applicationConfig = applicationConfig
+    this.runQuery = runQuery
   }
 
   async getAcquintances () {
-    return askGraphQL(
-      { query: getAcquintancesQuery, variables: { user: this.userId } },
-      'Fetching acquintances',
-      '',
-      this.applicationConfig
-    )
+    return this.runQuery({
+      query: getAcquintancesQuery,
+      variables: { user: this.userId }
+    })
   }
 
   async addAcquintance (contact) {
-    return askGraphQL(
-      { query: addAcquintanceQuery, variables: { user: this.userId, email: contact } },
-      'Adding acquintances',
-      '',
-      this.applicationConfig
-    )
+    return this.runQuery({
+      query: addAcquintanceQuery,
+      variables: { user: this.userId, email: contact }
+    })
   }
 
   async sendArticle (articleId, to) {
-    return askGraphQL(
-      {
+    return this.runQuery({
         query: sendArticleQuery,
         variables: {
           user: this.userId,
           to,
           article: articleId,
         }
-      },
-      'Sending article',
-      '',
-      this.applicationConfig
-    )
+      })
   }
 
   async shareArticle (articleId, to) {
-    return askGraphQL(
-      {
+    return this.runQuery({
         query: shareArticleQuery,
         variables: {
           user: this.userId,
           to,
           article: articleId,
         }
-      },
-      'Sharing article',
-      '',
-      this.applicationConfig
-    )
+      })
   }
 }

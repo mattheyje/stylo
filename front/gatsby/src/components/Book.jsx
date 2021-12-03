@@ -9,7 +9,7 @@ import Export from './Export'
 import Chapter from './Chapter'
 
 import etv from '../helpers/eventTargetValue'
-import askGraphQL from '../helpers/graphQL'
+import { useGraphQL } from '../helpers/graphQL'
 import formatTimeAgo from '../helpers/formatTimeAgo'
 import { generateBookExportId } from "../helpers/identifier"
 
@@ -18,33 +18,29 @@ import buttonStyles from './button.module.scss'
 
 import Button from './Button'
 import Field from './Field'
+import { useSelector } from 'react-redux'
 
 const alphaSort = (a, b) => a.title.localeCompare(b.title)
 
-const mapStateToProps = ({ sessionToken, activeUser, applicationConfig }) => {
-  return { sessionToken, activeUser, applicationConfig }
-}
+function Book (props) {
+  const userId = useSelector(state => state.activeUser._id)
 
-const Book = (props) => {
   const [expanded, setExpanded] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [tempName, setTempName] = useState(props.name)
   const [name, setName] = useState(props.name)
   const [isRenaming, setIsRenaming] = useState(false)
 
+  const runQuery = useGraphQL()
+
   const renameBook = async () => {
     const query = `mutation($user:ID!,$tag:ID!,$name:String,$description:String){ updateTag(user:$user,tag:$tag,name:$name,description:$description){ _id name description } }`
     const variables = {
-      user: props.activeUser._id,
+      user: userId,
       tag: props._id,
       name: tempName,
     }
-    const newTag = await askGraphQL(
-      { query, variables },
-      'Updating infos of the tag',
-      props.sessionToken,
-      props.applicationConfig
-    )
+    const newTag = await runQuery({ query, variables })
     setName(newTag.updateTag.name)
     setIsRenaming(false)
   }
@@ -119,4 +115,4 @@ const Book = (props) => {
   )
 }
 
-export default connect(mapStateToProps)(Book)
+export default Book
