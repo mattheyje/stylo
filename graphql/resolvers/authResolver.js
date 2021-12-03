@@ -137,36 +137,16 @@ module.exports = {
       throw err
     }
   },
-  refreshToken: async (_, {req, res}) => {
+  refreshToken: async (_, { req }) => {
     if (!req.user) {
-      throw new Error("Can't refresh user without cookie");
+      throw new Error("Can't refresh user without a token");
     }
     const fetchedPassword = await Password.findOne({ _id: req.user.passwordId }).populate("users")
     if (!fetchedPassword) {
       throw new Error("Password not found")
     }
-    const payload = {
-      email: req.user.email,
-      usersIds: fetchedPassword.users.map(user => user._id.toString()),
-      passwordId: fetchedPassword.id,
-      admin: fetchedPassword.users.filter(user => user.admin).length > 0 ? true : false,
-      session: true
-    }
-
-    const token = jwt.sign(
-      payload,
-      process.env.JWT_SECRET_SESSION_COOKIE
-    )
-
-    res.cookie('graphQL-jwt', token, {
-      expires: 0,
-      httpOnly: true,
-      secure: process.env.HTTPS === 'true'
-    })
 
     return {
-      token: token,
-      password: populatePassword(fetchedPassword),
       users: fetchedPassword.users.map(populateUser)
     }
   },

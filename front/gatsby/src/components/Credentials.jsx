@@ -26,21 +26,11 @@ const mapDispatchToProps = (dispatch) => {
 
 const Credentials = (props) => {
   useEffect(() => {
-    ;(async () => {
-      try {
-        const query = 'query{ refreshToken{ users { _id displayName email } } }'
-        const data = await askGraphQL(
-          { query },
-          'fetching user',
-          props.sessionToken,
-          props.applicationConfig
-        )
-        props.updateUser(data.refreshToken.users)
-        setIsLoading(false)
-      } catch (err) {
-        alert(`couldn't fetch users ${err}`)
-      }
-    })()
+    const query = `query{ refreshToken { users { _id displayName email } }}`
+    askGraphQL({ query }, 'update Password', props.sessionToken, props.applicationConfig).then(data => {
+      props.updateUser(data.refreshToken.users)
+      setIsLoading(false)
+    })
   }, [])
 
   const [password, setPassword] = useState('')

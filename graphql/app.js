@@ -1,5 +1,4 @@
 const pkg = require('./package.json')
-const jwt = require('jsonwebtoken')
 const express = require('express')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
@@ -244,59 +243,26 @@ app.use('/authorization-code/zotero/callback',
 app.use('/authorization-code/callback',
   passport.authenticate('oidc', { failureRedirect: '/error', failureFlash: true }),
   async (req, res) => {
-    const email = req.user.email
-
-    if (email) {
-      // generate a JWT token
-      // TODO: we should be able to remove it, keep it for now
-      const token = await createJWTToken({ email, jwtSecret })
-
-      res.cookie("graphQL-jwt", token, {
-        expires: 0,
-        httpOnly: true,
-        secure: secureCookie,
-        sameSite: sameSiteCookies
-      })
-    }
-
     return res.redirect(req.session.origin)
   }
 )
 
 app.get('/logout', (req, res) => {
   req.logout()
-  res.clearCookie('graphQL-jwt')
   res.redirect(req.headers.referer)
 })
 
 app.post('/login',
   passport.authenticate('local', { failWithError: true }),
-  function onSuccess(req, res, _) {
-    const userPassword = req.user
-    const payload = {
-      email: userPassword.email,
-      usersIds: userPassword.users.map(user => user._id.toString()),
-      passwordId: userPassword._id,
-      admin: Boolean(userPassword.admin),
-      session: true
-    }
+  async function onSuccess(req, res) {
+    const { email } = req.user
 
-    const token = jwt.sign(
-      payload,
-      jwtSecret
-    )
-
-    res.cookie("graphQL-jwt", token, {
-      expires: 0,
-      httpOnly: true,
-      secure: secureCookie,
-      sameSite: sameSiteCookies
-    })
+    const token = await createJWTToken({ email, jwtSecret })
 
     res.statusCode = 200
-    res.json({ password: userPassword, users: userPassword.users, token })
+    res.json({ token })
   },
-  function onFailure(error, req, res, _) {
+  function onFailure(error, req, res) {
     console.error('error', error)
     res.statusCode = 401
     res.json({ error })
