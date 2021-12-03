@@ -16,11 +16,8 @@ function createReducer (initialState, handlers) {
 
 // Définition du store Redux et de l'ensemble des actions
 const initialState = {
-  logedIn: false,
   hasBooted: false,
-  users: [],
-  password: undefined,
-  sessionToken: undefined,
+  sessionToken: localStorage.getItem('sessionToken'),
   workingArticle: {
     state: 'saved'
   },
@@ -141,6 +138,18 @@ function persistStateIntoLocalStorage ({ getState }) {
         return
       }
 
+      if (action.type === 'LOGIN') {
+        next(action)
+        const { sessionToken } = getState()
+        localStorage.setItem('sessionToken', sessionToken)
+        return
+      }
+
+      if (action.type === 'LOGOUT') {
+        localStorage.removeItem('sessionToken')
+        return next(action)
+      }
+
       return next(action)
     }
   }
@@ -179,15 +188,11 @@ function clearZoteroToken (state) {
   return state
 }
 
-function loginUser (state, { login }) {
-  if (login.password && login.users && login.token) {
+function loginUser (state, { token:sessionToken }) {
+  if (sessionToken) {
     return {
       ...state,
-      logedIn: true,
-      users: login.users,
-      activeUser: login.users[0],
-      password: login.password,
-      sessionToken: login.token,
+      sessionToken,
     }
   }
 
