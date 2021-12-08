@@ -17,6 +17,7 @@ import WriteRight from './WriteRight'
 import Compare from './Compare'
 import CompareSelect from './CompareSelect'
 import Loading from '../Loading'
+import WorkingVersion from "./WorkingVersion";
 
 function Write() {
   const { version: currentVersion, id: articleId, compareTo } = useParams()
@@ -277,9 +278,14 @@ function Write() {
           readOnly={readOnly}
         />
       )}
-
       <article className={styles.article}>
         <>
+          <WorkingVersion
+            articleTitle={articleInfos.title}
+            articleOwners={articleInfos.owners}
+            articleId={articleInfos._id}
+            readOnly={readOnly}
+          />
           {readOnly && <pre>{live.md}</pre>}
           {!readOnly && (
             <CodeMirror

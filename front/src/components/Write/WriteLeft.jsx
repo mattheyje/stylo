@@ -24,12 +24,6 @@ function WriteLeft ({ article, readOnly, compareTo, selectedVersion, onTableOfCo
       </nav>
       {expanded && (
         <div>
-          <WorkingVersion
-            articleTitle={article.title}
-            articleOwners={article.owners}
-            articleId={article._id}
-            readOnly={readOnly}
-          />
           <Versions
             article={article}
             selectedVersion={selectedVersion}

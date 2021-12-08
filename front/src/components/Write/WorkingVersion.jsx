@@ -61,10 +61,9 @@ const WorkingVersion = ({
         <h1 className={styles.title}>{articleTitle}</h1>
 
         <div className={styles.meta}>
-          <div className={styles.by}>by</div>
-          <div className={styles.byLine}>
-            <span className={styles.owners}>{articleOwners.join(', ')}</span>
-            <span className={styles.lastSaved}>
+          <ul className={styles.byLine}>
+            <li className={styles.owners}>by {articleOwners.join(', ')}</li>
+            <li className={styles.lastSaved}>
               <span className={stateUi.style}>
                 {state !== 'saved' && stateUi.icon}
                 {state !== 'saveFailure' && stateUi.text}
@@ -72,13 +71,10 @@ const WorkingVersion = ({
                   <strong>{stateUi.text}</strong>
                   {workingArticle.stateMessage}
                 </span>)}
-
               </span>
-
               {state === 'saved' && (<time dateTime={articleLastSavedAt}>{savedAgo}</time>)}
-
-            </span>
-          </div>
+            </li>
+          </ul>
         </div>
       </header>
       {exporting && (
@@ -89,21 +85,21 @@ const WorkingVersion = ({
           />
         </Modal>
       )}
-      <ul className={styles.actions}>
-        <li>
-          <Link
-            to={`/article/${articleId}/preview`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={[buttonStyles.button, buttonStyles.secondary].join(' ')}
-          >
-            Preview
-          </Link>
-        </li>
-        <li>
-          <Button onClick={() => setExporting(true)}>Export</Button>
-        </li>
-      </ul>
+      {/*<ul className={styles.actions}>*/}
+      {/*  <li>*/}
+      {/*    <Link*/}
+      {/*      to={`/article/${articleId}/preview`}*/}
+      {/*      target="_blank"*/}
+      {/*      rel="noopener noreferrer"*/}
+      {/*      className={[buttonStyles.button, buttonStyles.secondary].join(' ')}*/}
+      {/*    >*/}
+      {/*      Preview*/}
+      {/*    </Link>*/}
+      {/*  </li>*/}
+      {/*  <li>*/}
+      {/*    <Button onClick={() => setExporting(true)}>Export</Button>*/}
+      {/*  </li>*/}
+      {/*</ul>*/}
     </section>
   )
 }
