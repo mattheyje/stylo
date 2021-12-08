@@ -7,6 +7,10 @@
   flex-direction: row;
 }
 
+.header {
+  flex-grow: 1;
+}
+
 .title {
   font-size: 1.65rem;
   padding: 0;

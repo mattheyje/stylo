@@ -57,7 +57,7 @@ const WorkingVersion = ({
 
   return (
     <section className={styles.section}>
-      <header>
+      <header className={styles.header}>
         <h1 className={styles.title}>{articleTitle}</h1>
 
         <div className={styles.meta}>
@@ -85,21 +85,21 @@ const WorkingVersion = ({
           />
         </Modal>
       )}
-      {/*<ul className={styles.actions}>*/}
-      {/*  <li>*/}
-      {/*    <Link*/}
-      {/*      to={`/article/${articleId}/preview`}*/}
-      {/*      target="_blank"*/}
-      {/*      rel="noopener noreferrer"*/}
-      {/*      className={[buttonStyles.button, buttonStyles.secondary].join(' ')}*/}
-      {/*    >*/}
-      {/*      Preview*/}
-      {/*    </Link>*/}
-      {/*  </li>*/}
-      {/*  <li>*/}
-      {/*    <Button onClick={() => setExporting(true)}>Export</Button>*/}
-      {/*  </li>*/}
-      {/*</ul>*/}
+      <ul className={styles.actions}>
+        <li>
+          <Link
+            to={`/article/${articleId}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={[buttonStyles.button, buttonStyles.secondary].join(' ')}
+          >
+            Preview
+          </Link>
+        </li>
+        <li>
+          <Button onClick={() => setExporting(true)}>Export</Button>
+        </li>
+      </ul>
     </section>
   )
 }
