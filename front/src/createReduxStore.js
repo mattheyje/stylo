@@ -3,6 +3,7 @@ import { toEntries } from './helpers/bibtex'
 import VersionService from './services/VersionService'
 import ArticleService from "./services/ArticleService"
 import MetadataService from "./services/MetadataService"
+import BibliographyService from "./services/BibliographyService";
 
 function createReducer (initialState, handlers) {
   return function reducer (state = initialState, action) {
@@ -22,7 +23,11 @@ const initialState = {
   password: undefined,
   sessionToken: undefined,
   workingArticle: {
-    state: 'saved'
+    state: 'saved',
+    bibliography: {
+      text: '',
+      entries: []
+    }
   },
   applicationConfig: {
     backendEndpoint: import.meta.env.SNOWPACK_PUBLIC_BACKEND_ENDPOINT,
@@ -65,7 +70,6 @@ const reducer = createReducer(initialState, {
   // article reducers
   UPDATE_ARTICLE_STATS: updateArticleStats,
   UPDATE_ARTICLE_STRUCTURE: updateArticleStructure,
-  UPDATE_ARTICLE_BIB: updateArticleBib,
 
   // user preferences reducers
   USER_PREFERENCES_TOGGLE: toggleUserPreferences,
@@ -74,6 +78,7 @@ const reducer = createReducer(initialState, {
   SET_WORKING_ARTICLE_UPDATED_AT: setWorkingArticleUpdatedAt,
   SET_WORKING_ARTICLE_TEXT: setWorkingArticleText,
   SET_WORKING_ARTICLE_METADATA: setWorkingArticleMetadata,
+  SET_WORKING_ARTICLE_BIBLIOGRAPHY: setWorkingArticleBibliography,
   SET_WORKING_ARTICLE_STATE: setWorkingArticleState,
 
   ARTICLE_PREFERENCES_TOGGLE: toggleArticlePreferences,
@@ -95,7 +100,6 @@ const createNewArticleVersion  = store => {
         const { activeUser, applicationConfig } = store.getState()
         const userId = activeUser._id
         const { articleId, text } = action
-        store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saving' })
         try {
           const { updateWorkingVersion } = await new ArticleService(userId, articleId, applicationConfig).saveText(text)
           store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saved' })
@@ -115,6 +119,21 @@ const createNewArticleVersion  = store => {
           const { updateWorkingVersion } = await new MetadataService(userId, articleId, applicationConfig).saveMetadata(metadata)
           store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saved' })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_METADATA', metadata })
+          store.dispatch({ type: 'SET_WORKING_ARTICLE_UPDATED_AT', updatedAt: updateWorkingVersion.updatedAt })
+        } catch (err) {
+          console.error(err)
+          store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saveFailure' })
+        }
+        return next(action)
+      }
+      if (action.type === 'UPDATE_WORKING_ARTICLE_BIBLIOGRAPHY') {
+        const { activeUser, applicationConfig } = store.getState()
+        const userId = activeUser._id
+        const { articleId, bibliography } = action
+        try {
+          const { updateWorkingVersion } = await new BibliographyService(userId, articleId, applicationConfig).saveBibliography(bibliography)
+          store.dispatch({ type: 'SET_WORKING_ARTICLE_STATE', workingArticleState: 'saved' })
+          store.dispatch({ type: 'SET_WORKING_ARTICLE_BIBLIOGRAPHY', bibliography })
           store.dispatch({ type: 'SET_WORKING_ARTICLE_UPDATED_AT', updatedAt: updateWorkingVersion.updatedAt })
         } catch (err) {
           console.error(err)
@@ -279,11 +298,6 @@ function updateArticleStructure (state, { md }) {
   return { ...state, articleStructure }
 }
 
-function updateArticleBib(state, { bib }) {
-  const articleBibTeXEntries = toEntries(bib)
-  return { ...state, articleBib: bib, articleBibTeXEntries }
-}
-
 function setArticleVersions(state, { versions }) {
   return { ...state, articleVersions: versions }
 }
@@ -301,6 +315,15 @@ function setWorkingArticleText(state, { text }) {
 function setWorkingArticleMetadata(state, { metadata }) {
   const { workingArticle } = state
   return { ...state, workingArticle: { ...workingArticle, metadata } }
+}
+
+function setWorkingArticleBibliography(state, { bibliography }) {
+  const bibTeXEntries = toEntries(bibliography)
+  const { workingArticle } = state
+  return {
+    ...state,
+    workingArticle: { ...workingArticle, bibliography: { text: bibliography, entries: bibTeXEntries } }
+  }
 }
 
 function setWorkingArticleState(state, { workingArticleState, message }) {
