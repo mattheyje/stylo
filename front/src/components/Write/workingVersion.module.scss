@@ -115,3 +115,28 @@ time {
   justify-content: flex-end;
   gap: 0.5em;
 }
+
+.focusButton {
+  margin-left: 2em;
+  border-radius: 2em;
+}
+
+.focusButton:hover:not([disabled]),
+.focusButton:focus:not([disabled]) {
+  background-color: white;
+}
+
+.focusButton > svg {
+  margin-left: 0.3em;
+  margin-right: 0
+}
+
+.focusActiveButton {
+  background-color: $button-primary-background;
+  color: $button-primary-color;
+}
+
+.focusActiveButton:hover:not([disabled]),
+.focusActiveButton:focus:not([disabled]) {
+  background-color: $button-primary-background;
+}
