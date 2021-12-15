@@ -11,8 +11,9 @@ import Button from "../Button";
 import { Menu } from "react-feather";
 import { Link } from "react-router-dom";
 import buttonStyles from "../button.module.scss";
+import WriteRight from "./WriteRight";
 
-function WriteLeft ({ article, readOnly, compareTo, selectedVersion, onTableOfContentClick }) {
+function WriteLeft ({ article, readOnly, compareTo, yaml, handleYaml, selectedVersion, onTableOfContentClick }) {
   const articleStats = useSelector(state => state.articleStats, shallowEqual)
   const dispatch = useDispatch()
   const toggleExpand = useCallback(() => dispatch({ type: 'ARTICLE_PREFERENCES_TOGGLE', key: 'expandSidebarLeft' }), [])
@@ -22,16 +23,16 @@ function WriteLeft ({ article, readOnly, compareTo, selectedVersion, onTableOfCo
 
   return (
     <>
-    <div className={styles.side}>
+    <div className={[styles.side, expanded ? styles.expanded : ''].join(' ')}>
     {/*<Button onClick={toggleExpand}><Menu/> Open</Button>*/}
-      {expanded && <nav className={styles.menu}>
+      {<nav className={styles.menu}>
       {/*<nav*/}
       {/*  onClick={toggleExpand}*/}
       {/*  className={expanded ? styles.close : styles.open}*/}
       {/*>*/}
       {/*  {expanded ? 'close' : 'open'}*/}
       {/*</nav>*/}
-      {expanded && (
+      {
         <div>
           <Versions
             article={article}
@@ -39,11 +40,16 @@ function WriteLeft ({ article, readOnly, compareTo, selectedVersion, onTableOfCo
             compareTo={compareTo}
             readOnly={readOnly}
           />
-          <Sommaire onTableOfContentClick={onTableOfContentClick} />
           <Biblio readOnly={readOnly} article={article} />
-          <Stats stats={articleStats} />
+          <Sommaire onTableOfContentClick={onTableOfContentClick} />
+          <WriteRight
+            yaml={yaml}
+            handleYaml={handleYaml}
+            readOnly={readOnly}
+          />
+          {/*<Stats stats={articleStats} />*/}
         </div>
-      )}
+      }
     </nav>}
     </div>
     </>

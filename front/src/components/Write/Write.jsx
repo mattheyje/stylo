@@ -20,6 +20,7 @@ import Loading from '../Loading'
 import WorkingVersion from "./WorkingVersion";
 
 function Write() {
+  const articleStats = useSelector(state => state.articleStats, shallowEqual)
   const { version: currentVersion, id: articleId, compareTo } = useParams()
   const userId = useSelector((state) => state.activeUser._id)
   const applicationConfig = useSelector(
@@ -263,11 +264,8 @@ function Write() {
         selectedVersion={currentVersion}
         readOnly={readOnly}
         onTableOfContentClick={handleUpdateCursorPosition}
-      />
-      <WriteRight
         yaml={live.yaml}
         handleYaml={handleYaml}
-        readOnly={readOnly}
       />
       {compareTo && (
         <CompareSelect
@@ -302,6 +300,11 @@ function Write() {
           )}
           {compareTo && <Compare compareTo={compareTo} md={live.md} />}
         </>
+        <ul className={styles.stats}>
+          <li>Words : {articleStats.wordCount}</li>
+          <li>Characters : {articleStats.charCountNoSpace} (with spaces: {articleStats.charCountPlusSpace})</li>
+          <li>Citations : {articleStats.citationNb}</li>
+        </ul>
       </article>
     </section>
   )

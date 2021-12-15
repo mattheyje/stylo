@@ -119,6 +119,7 @@ time {
 .focusButton {
   margin-left: 2em;
   border-radius: 2em;
+  border: none;
 }
 
 .focusButton:hover:not([disabled]),
@@ -127,8 +128,8 @@ time {
 }
 
 .focusButton > svg {
-  margin-left: 0.3em;
-  margin-right: 0
+  margin-right: 0.3em;
+  margin-left: 0
 }
 
 .focusActiveButton {

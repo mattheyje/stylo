@@ -10,6 +10,38 @@
 .side {
   display: flex;
   flex-direction: column;
+  margin-left: -420px;
+  animation-duration: 0.25s;
+  animation-name: slideout;
+  min-height: calc(100vh - 49px);
+  max-height: calc(100vh - 49px);
+  overflow-y: scroll;
+}
+
+.expanded {
+  animation-duration: 0.25s;
+  animation-name: slidein;
+  margin-left: 0;
+}
+
+@keyframes slideout {
+  from {
+    margin-left: 0;
+  }
+
+  to {
+    margin-left: -420px;
+  }
+}
+
+@keyframes slidein {
+  from {
+    margin-left: -420px;
+  }
+
+  to {
+    margin-left: 0;
+  }
 }
 
 .menu {

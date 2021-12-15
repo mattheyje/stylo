@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { connect, useDispatch, useSelector } from 'react-redux'
 import styles from './workingVersion.module.scss'
 import Button from '../Button'
-import { AlertCircle, Check, Loader, PenTool } from 'react-feather'
+import { AlertCircle, Check, Loader, PenTool, ToggleLeft, ToggleRight } from 'react-feather'
 import { Link } from 'react-router-dom'
 import buttonStyles from '../button.module.scss'
 import Modal from '../Modal'
@@ -111,7 +111,7 @@ const WorkingVersion = ({
         <li>
           {focusMode}
           <Button onClick={toggleFocusMode}
-                  className={[styles.focusButton, focusMode ? styles.focusActiveButton : ''].join(' ')}>Focus <PenTool/></Button>
+                  className={[styles.focusButton, focusMode ? styles.focusActiveButton : ''].join(' ')}>{focusMode ? <ToggleRight/> : <ToggleLeft/>} Focus</Button>
         </li>
       </ul>
     </section>
