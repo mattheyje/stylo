@@ -13,9 +13,6 @@
   margin-left: -420px;
   animation-duration: 0.25s;
   animation-name: slideout;
-  min-height: calc(100vh - 49px);
-  max-height: calc(100vh - 49px);
-  overflow-y: scroll;
 }
 
 .expanded {
@@ -48,6 +45,9 @@
   min-width: 400px;
   background-color: rgba(255, 255, 255, 1);
   border-right: 1px solid $main-border-color;
+  min-height: calc(100vh - 49px);
+  max-height: calc(100vh - 49px);
+  overflow-y: scroll;
 }
 
 .actions {
