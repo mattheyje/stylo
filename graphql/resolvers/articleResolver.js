@@ -120,12 +120,14 @@ module.exports = {
 
     return returnArticle
   },
-  sendArticle: async (args,{req}) => {
+  duplicateArticle: async (args,{req}) => {
     populateArgs(args,req)
     isUser(args,req)
 
     //Fetch article and user to send to
-    const fetchedArticle = await Article.findOne({_id:args.article,owners:args.user})
+    const userIds = await User.findAccountAccessUserIds(req.user._id)
+    const fetchedArticle = await Article.findOneByOwners(args.article, [req.user._id, userIds])
+
     if(!fetchedArticle){
       throw new Error('Unable to find article')
     }
@@ -134,18 +136,19 @@ module.exports = {
       throw new Error('Unable to find user')
     }
 
-    if(!fetchedArticle){
-      throw new Error('Unable to fetch version')
-    }
-
     //All good, create new Article & merge version/article/user
-    let prefix = '[Sent] '
-    if(args.user === args.to){
-      prefix = '[Copy] '
-    }
+    const prefix = args.user === args.to ? '[Copy] ' : '[Sent] '
 
-    let newArticle = new Article({title:prefix+fetchedArticle.title, zoteroLink:fetchedArticle.zoteroLink})
-    newArticle.owners.push(fetchedUser.id)
+    const newArticle = new Article({
+      ...fetchedArticle,
+      _id: undefined,
+      owners: [fetchedUser.id],
+      createdAt: null,
+      updatedAt: null,
+      title: prefix + fetchedArticle.title,
+    })
+
+    newArticle.isNew = true
     fetchedUser.articles.push(newArticle)
 
     //Save the three objects
