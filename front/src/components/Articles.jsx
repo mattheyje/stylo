@@ -24,10 +24,11 @@ const ConnectedArticles = (props) => {
   const [articles, setArticles] = useState([])
   const [tags, setTags] = useState([])
   const [filterTags, setFilterTags] = useState([])
-  const [displayName, setDisplayName] = useState(props.activeUser.displayName)
   const [creatingArticle, setCreatingArticle] = useState(false)
   const [needReload, setNeedReload] = useState(true)
   const [tagManagement, setTagManagement] = useState(false)
+
+  const { displayName } = props.activeUser
 
   const handleReload = useCallback(() => {
     setNeedReload(true)
@@ -90,8 +91,44 @@ const ConnectedArticles = (props) => {
     return pass
   }
 
-  const query =
-    'query($user:ID!){user(user:$user){ displayName tags{ _id description color name } articles{ _id title updatedAt owners{ _id displayName } versions{ _id version revision message } tags{ name color _id }}}}'
+  const query = `query($user:ID!){
+    user(user:$user){
+      displayName
+      tags {
+        _id
+        owner
+        description
+        color
+        name
+      }
+
+      articles{
+        _id
+        title
+        updatedAt
+
+        owners{
+          _id
+          displayName
+        }
+
+        versions{
+          _id
+          version
+          revision
+          message
+        }
+
+        tags{
+          name
+          owner
+          color
+          _id
+        }
+      }
+    }
+  }`
+
   const user = { user: props.activeUser._id }
 
   useEffect(() => {
@@ -116,7 +153,6 @@ const ConnectedArticles = (props) => {
           setTags(tags)
           // deep copy of tags
           setFilterTags(JSON.parse(JSON.stringify(tags)))
-          setDisplayName(data.user.displayName)
           setIsLoading(false)
           setNeedReload(false)
         } catch (err) {
@@ -164,7 +200,8 @@ const ConnectedArticles = (props) => {
             {filterTags.map((t) => (
               <li key={`filterTag-${t._id}`}>
                 <Tag
-                  data={t}
+                  tag={t}
+                  activeUser={props.activeUser}
                   name={`filterTag-${t._id}`}
                   onClick={() => {
                     // shallow copy otherwise React won't render the components again
