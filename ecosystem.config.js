@@ -10,15 +10,17 @@ module.exports = {
     },
     {
       name: "export",
-      script: "nodemon",
+      script: "node",
       args: "./src/app.js",
-      cwd: "./export"
+      cwd: "./export",
+      watch: ['**/*.js']
     },
     {
       name: "graphql",
-      script: "nodemon",
-      args: "--config nodemon.json app.js",
-      cwd: "./graphql"
+      script: "node",
+      args: "app.js",
+      cwd: "./graphql",
+      watch: ['**/*.js'],
     }
   ]
 }
